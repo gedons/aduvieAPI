@@ -92,7 +92,7 @@ exports.getAllContactEmails = async (req, res) => {
 
   // Controller Function to Get a Single Contact Message by ID
 exports.getContactMessageById = async (req, res) => {
-    const messageId = req.params.id;
+    const {messageId} = req.params;
   
     try {
       // Fetch the contact message by its ID
@@ -127,7 +127,12 @@ exports.getContactMessageById = async (req, res) => {
         from: 'admin@aduvieevents.com',
         to: email,
         subject: subject,
-        html: `<p>${message}</p>`
+        html: `Dear User\n\n
+               <p>${message}</p>
+               \n\nBest regards,
+               \nAduvie Event Management Team
+               <center><p><img src="https://aduvie-blush.vercel.app/assets/main-B7reynfm.jpeg" width="200px" alt="Aduvie Events Logo"></p></center>`
+        
       };
   
       await transporter.sendMail(mailOptions);

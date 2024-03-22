@@ -19,7 +19,7 @@ router.post('/send-email', authMiddleware, contactController.sendEmailToContact)
 router.get('/emails', authMiddleware, contactController.getAllContactEmails);
 
 // Backend API Route for Admin to Get a Single Message by ID
-router.get('/message/:id', authMiddleware, contactController.getContactMessageById);
+router.get('/message/:messageId', authMiddleware, contactController.getContactMessageById);
 
 
 
