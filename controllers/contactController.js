@@ -63,7 +63,7 @@ exports.getAllContactMessages = async (req, res) => {
       console.error('Error fetching contact messages:', error);
       res.status(500).json({ msg: 'Server Error' });
     }
-  };
+};
   
   // Admin Delete Contact Message Controller
   exports.deleteContactMessage = async (req, res) => {
@@ -77,6 +77,38 @@ exports.getAllContactMessages = async (req, res) => {
       res.status(500).json({ msg: 'Server Error' });
     }
   };
+
+ // Controller Function to Get All Contact Emails
+exports.getAllContactEmails = async (req, res) => {
+    try {
+      // Fetch all emails from the ContactMessage table
+      const emails = await ContactMessage.find().distinct('email');
+      res.json(emails);
+    } catch (error) {
+      console.error('Error fetching contact emails:', error);
+      res.status(500).json({ msg: 'Server Error' });
+    }
+};
+
+  // Controller Function to Get a Single Contact Message by ID
+exports.getContactMessageById = async (req, res) => {
+    const messageId = req.params.id;
+  
+    try {
+      // Fetch the contact message by its ID
+      const message = await ContactMessage.findById(messageId);
+      
+      if (!message) {
+        return res.status(404).json({ msg: 'Message not found' });
+      }
+  
+      res.json(message);
+    } catch (error) {
+      console.error('Error fetching contact message:', error);
+      res.status(500).json({ msg: 'Server Error' });
+    }
+};
+  
   
   // Admin Send Email to Contact Email Controller
   exports.sendEmailToContact = async (req, res) => {
