@@ -20,8 +20,8 @@ const galleryRoutes = require('./routes/galleryRoutes');
 dotenv.config();
 
 const corsOptions = {
-  //origin: 'https://aduvie-blush.vercel.app', 
-  origin: 'http://localhost:5173', 
+  origin: 'https://aduvie-blush.vercel.app', 
+  //origin: 'http://localhost:5173', 
   credentials: true,
 };
 
