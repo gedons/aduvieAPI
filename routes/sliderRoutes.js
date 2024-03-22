@@ -1,0 +1,15 @@
+const express = require('express');
+const router = express.Router();
+const sliderController = require('../controllers/sliderController');
+const authMiddleware = require('../middleware/authMiddleware');
+
+// Create Slider Image
+router.post('/slider', authMiddleware, sliderController.createSliderImage);
+
+// Get All Slider Images
+router.get('/slider', sliderController.getAllSliderImages);
+
+// Delete Slider 
+router.delete('/slider/:sliderId', authMiddleware, sliderController.deleteSliderImage);
+
+module.exports = router;
