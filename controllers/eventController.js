@@ -112,7 +112,7 @@ const sendEmailReminder = (event) => {
   });
 
   const mailOptions = {
-    from: 'your_email',
+    from: 'support@aduvieevents.com',
     to: event.email,
     subject: 'Event Reminder',
     text: `This is a reminder for the event "${event.name}" scheduled for ${event.date}`

@@ -3,19 +3,21 @@ const nodemailer = require('nodemailer');
 
 // Handle contact form submission
 exports.submitContactForm = async (req, res) => {
-  const { name, email, message } = req.body;
+  const { name, email, phone, subject, message } = req.body;
 
   try {
     // Save contact message to the database
     const newContactMessage = new ContactMessage({
       name,
       email,
+      phone,
+      subject,
       message
     });
     await newContactMessage.save();
 
     // Send email notification to admin
-    sendEmailReminder(name, email, message);
+    sendEmailReminder(name, email, phone, subject, message);
 
     res.json({ msg: 'Contact message submitted successfully' });
   } catch (err) {
@@ -25,21 +27,21 @@ exports.submitContactForm = async (req, res) => {
 };
 
 // Function to send email notification
-const sendEmailReminder = (name, email, message) => {
+const sendEmailReminder = (name, email, subject) => {
     const transporter = nodemailer.createTransport({
-      host: "smtp.mailtrap.io",
-      port: 2525,
-      auth: {
-        user: "your_mailtrap_username",
-        pass: "your_mailtrap_password"
+        host: "sandbox.smtp.mailtrap.io",
+        port: 2525,
+        auth: {
+          user: "235d4fbf890151",
+          pass: "239a58f61ee725"
       }
     });
   
     const mailOptions = {
-      from: email, // Use the email provided by the user
+      from: email,  
       to: 'admin@example.com',
       subject: 'New Contact Form Submission',
-      html: `<p>Name: ${name}</p><p>Email: ${email}</p><p>Message: ${message}</p>`
+      html: `<p>Name: ${name}</p><p>Email: ${email}</p><p>Message: ${subject}</p>`
     };
   
     transporter.sendMail(mailOptions, (error, info) => {
@@ -49,5 +51,5 @@ const sendEmailReminder = (name, email, message) => {
         console.log('Email sent:', info.response);
       }
     });
-  };
+};
   
