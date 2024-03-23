@@ -81,17 +81,18 @@ const sendConfirmationEmail = async (firstName, lastName, email, date) => {
   try {
     // Configure Nodemailer
     const transporter = nodemailer.createTransport({
-        host: "sandbox.smtp.mailtrap.io",
-        port: 2525,
-        auth: {
-          user: "235d4fbf890151",
-          pass: "239a58f61ee725"
+      host: 'mail.aduvieevents.com', 
+      port: 465,                       
+      secure: true,                    
+      auth: {
+          user: 'support@aduvieevents.com',  
+          pass: 'blues0001153'   
         }
     });
 
     // Email content
     const mailOptions = {
-      from: 'admin@aduvieevents.com',
+      from: 'support@aduvieevents.com',
       to: email,
       subject: 'Booking Confirmation',
       html: `Dear ${firstName} ${lastName}\n\n
