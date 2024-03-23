@@ -112,10 +112,14 @@ const sendEmailReminder = (event) => {
   });
 
   const mailOptions = {
-    from: 'support@aduvieevents.com',
+    from: 'admin@aduvieevents.com',
     to: event.email,
     subject: 'Event Reminder',
-    text: `This is a reminder for the event "${event.name}" scheduled for ${event.date}`
+    html: `Dear User\n\n
+            This is a reminder for the event 
+            <p>Event Name: ${event.name}</p>\n\n
+            scheduled for ${event.date}
+            <center><p><img src="https://aduvie-blush.vercel.app/assets/main-B7reynfm.jpeg" width="200px" alt="Aduvie Events Logo"></p></center>`
   };
 
   transport.sendMail(mailOptions, (error, info) => {
@@ -148,4 +152,16 @@ exports.getTotalEvents = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch total events', error: error.message });
   }
 };
+
+// Get events with status pending
+exports.getPendingEvents = async (req, res) => {
+  try {
+    const pendingEvents = await Event.find({ status: 'pending' });
+    res.json(pendingEvents);
+  } catch (error) {
+    console.error('Error fetching pending events:', error.message);
+    res.status(500).json({ error: 'Server Error' });
+  }
+};
+
 

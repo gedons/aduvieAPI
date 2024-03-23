@@ -21,4 +21,7 @@ router.delete('/:eventId', authMiddleware, eventController.deleteEvent);
 // Total events
 router.get('/total-event', eventController.getTotalEvents);
 
+// Route to get events with status pending
+router.get('/pending', eventController.getPendingEvents);
+
 module.exports = router;

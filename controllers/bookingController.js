@@ -91,10 +91,14 @@ const sendConfirmationEmail = async (firstName, lastName, email, date) => {
 
     // Email content
     const mailOptions = {
-      from: 'your@example.com',
+      from: 'admin@aduvieevents.com',
       to: email,
       subject: 'Booking Confirmation',
-      text: `Dear ${firstName} ${lastName},\n\nYour booking scheduled for ${date} has been confirmed. Thank you for choosing our service.\n\nBest regards,\nAduvie Event Management Team`
+      html: `Dear ${firstName} ${lastName}\n\n
+              Your booking scheduled for ${date} has been confirmed.
+              \n\n Thank you for choosing our service.
+              \nBest regards,\nAduvie Event Management Team
+             <center><p><img src="https://aduvie-blush.vercel.app/assets/main-B7reynfm.jpeg" width="200px" alt="Aduvie Events Logo"></p></center>`
     };
 
     // Send email
