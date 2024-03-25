@@ -18,4 +18,13 @@ router.delete('/:bookingId/delete', authMiddleware, bookingController.deleteBook
 // Total booking
 router.get('/total-booking', bookingController.getTotalBookings);
 
+// Route to check the availability of a date
+router.post('/check-date', bookingController.checkDateAvailability);
+
+//get specific booking by id
+router.get('/:bookingId', authMiddleware, bookingController.getBookingId)
+
+// Admin Send Email to user  
+router.post('/send-email', authMiddleware, bookingController.sendEmailToContact);
+
 module.exports = router;

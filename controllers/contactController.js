@@ -115,12 +115,13 @@ exports.getContactMessageById = async (req, res) => {
     const { email, subject, message } = req.body;
     try {
         const transporter = nodemailer.createTransport({
-            host: "sandbox.smtp.mailtrap.io",
-            port: 2525,
-            auth: {
-              user: "235d4fbf890151",
-              pass: "239a58f61ee725"
-          }
+          host: 'mail.aduvieevents.com', 
+          port: 465,                       
+          secure: true,                    
+          auth: {
+              user: 'support@aduvieevents.com',  
+              pass: 'blues0001153'   
+            }
         });
   
       const mailOptions = {

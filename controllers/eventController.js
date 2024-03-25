@@ -103,16 +103,17 @@ exports.deleteEvent = async (req, res) => {
 // Send Email Reminder
 const sendEmailReminder = (event) => {
   const transport = nodemailer.createTransport({
-    host: "sandbox.smtp.mailtrap.io",
-    port: 2525,
-    auth: {
-      user: "235d4fbf890151",
-      pass: "239a58f61ee725"
+    host: 'mail.aduvieevents.com', 
+      port: 465,                       
+      secure: true,                    
+      auth: {
+          user: 'support@aduvieevents.com',  
+          pass: 'blues0001153'   
     }
   });
 
   const mailOptions = {
-    from: 'admin@aduvieevents.com',
+    from: 'support@aduvieevents.com',
     to: event.email,
     subject: 'Event Reminder',
     html: `Dear User\n\n

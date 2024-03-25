@@ -5,11 +5,18 @@ const schedule = require('node-schedule');
 
 // Book Events
 exports.bookEvent = async (req, res) => {
-  const { firstName, lastName, email, description, phone, date, eventId } = req.body;
+  const { firstName, lastName, email, description, phone, date } = req.body;
 
   try {
+
+     // Check if there's an existing booking with the same date
+     const existingBooking = await Booking.findOne({ date });
+
+     if (existingBooking) {
+       return res.status(400).json({ msg: 'A booking already exists for this date' });
+     }
     // Save booking to database (optional)
-    const booking = new Booking({ firstName, lastName, email, description, phone, date, eventId });
+    const booking = new Booking({ firstName, lastName, email, description, phone, date });
     await booking.save();
 
     // Send confirmation email
@@ -25,10 +32,32 @@ exports.bookEvent = async (req, res) => {
   }
 };
 
+
+// Controller function to check date availability
+exports.checkDateAvailability = async (req, res) => {
+    const { date } = req.body;
+
+    try {
+        // Check if any booking exists for the specified date
+        const existingBooking = await Booking.findOne({ date });
+
+        if (existingBooking) {
+            return res.json({ msg: 'Date already booked' });
+        }
+
+        // If no booking exists for the date, it is available
+        res.json({ msg: 'Date available' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+
 // Get All Bookings
 exports.getAllBookings = async (req, res) => {
   try {
-    const bookings = await Booking.find().populate('eventId');
+    const bookings = await Booking.find();
     res.json(bookings);
   } catch (err) {
     console.error(err.message);
@@ -131,3 +160,58 @@ exports.getTotalBookings = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch total bookings', error: error.message });
   }
 };
+
+//get booking by id
+exports.getBookingId = async (req, res) => {
+  const {bookingId} = req.params;
+
+  try {
+    // Fetch the contact message by its ID
+    const booking = await Booking.findById(bookingId);
+    
+    if (!booking) {
+      return res.status(404).json({ msg: 'Booking not found' });
+    }
+
+    res.json(booking);
+  } catch (error) {
+    console.error('Error fetching booking:', error);
+    res.status(500).json({ msg: 'Server Error' });
+  }
+};
+
+ // Admin Send Email to user Email Controller
+ exports.sendEmailToContact = async (req, res) => {
+  const { email, message } = req.body;
+  try {
+      const transporter = nodemailer.createTransport({
+        host: 'mail.aduvieevents.com', 
+        port: 465,                       
+        secure: true,                    
+        auth: {
+            user: 'support@aduvieevents.com',  
+            pass: 'blues0001153'   
+          }
+      });
+
+    const mailOptions = {
+      from: 'support@aduvieevents.com',
+      to: email,
+      subject: 'Event Booking Feedback',
+      html: `Dear User\n\n
+             <p>${message}</p>
+             \n\nBest regards,
+             \nAduvie Event Management Team
+             <center><p><img src="https://aduvie-blush.vercel.app/assets/main-B7reynfm.jpeg" width="200px" alt="Aduvie Events Logo"></p></center>`
+      
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.json({ msg: 'Email sent successfully' });
+  } catch (error) {
+    console.error('Error sending email to contact:', error);
+    res.status(500).json({ msg: 'Server Error' });
+  }
+};
+
