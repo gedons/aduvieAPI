@@ -39,7 +39,7 @@ exports.checkDateAvailability = async (req, res) => {
 
     try {
         // Check if any booking exists for the specified date
-        const existingBooking = await Booking.findOne({ date });
+        const existingBooking = await Event.findOne({ date });
 
         if (existingBooking) {
             return res.json({ msg: 'Date already booked' });
