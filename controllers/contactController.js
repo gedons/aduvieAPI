@@ -112,7 +112,7 @@ exports.getContactMessageById = async (req, res) => {
   
   // Admin Send Email to Contact Email Controller
   exports.sendEmailToContact = async (req, res) => {
-    const { email, subject, message } = req.body;
+    const { email, subject, messages } = req.body;
     try {
         const transporter = nodemailer.createTransport({
           host: 'mail.aduvieevents.com', 
@@ -129,7 +129,7 @@ exports.getContactMessageById = async (req, res) => {
         to: email,
         subject: subject,
         html: `Dear User\n\n
-               <p>${message}</p>
+               <p>${messages}</p>
                \n\nBest regards,
                \nAduvie Event Management Team
                <center><p><img src="https://aduvie-blush.vercel.app/assets/main-B7reynfm.jpeg" width="200px" alt="Aduvie Events Logo"></p></center>`
