@@ -1,13 +1,50 @@
 const nodemailer = require('nodemailer');
 const Event = require('../models/Event');
 const schedule = require('node-schedule');
+const path = require('path');
+const fs = require('fs');
+const { Dropbox } = require('dropbox');
+
+ 
+const dropbox = new Dropbox({
+  accessToken: process.env.DROPBOX_ACCESS_TOKEN,
+  fetch  
+});
 
 // Create Event
 exports.createEvent = async (req, res) => {
+
+  const file = req.file;
+
+   if (!file) {
+     return res.status(400).send('No file uploaded');
+   }
+
   const { name, date, status, email, description } = req.body;
 
   try {
+    const fileBuffer = fs.readFileSync(file.path);
+    const path = `/uploads/${file.filename}`;
+
+    const fileData = await dropbox.filesUpload({
+      path: path,
+      contents: fileBuffer,
+    });
+ 
+
+    // path for creating a shared link
+    const sharedLinkPath = { path: fileData.result.path_display };
+
+    // Create a shared link for the file
+    const sharedLink = await dropbox.sharingCreateSharedLinkWithSettings(sharedLinkPath);
+
+    // Extract the link from the shared link
+    let imageUrl = sharedLink.result.url;
+
+    imageUrl = imageUrl.replace(/dl=0/, 'raw=1');
+
     const event = new Event({
+      imageUrl,
       name,
       date,
       status,
@@ -43,22 +80,45 @@ exports.getAllEvents = async (req, res) => {
 
 // Update Event
 exports.updateEvent = async (req, res) => {
-    const { eventId } = req.params;
-    const { name, date, status, email, description } = req.body; 
-  
-    try {
-      let event = await Event.findByIdAndUpdate(eventId, { name, date, status, email, description }, { new: true });
-  
-      if (!event) {
-        return res.status(404).json({ msg: 'Event not found' });
+  const { eventId } = req.params;
+  const { name, date, status, email, description } = req.body; 
+  let imageUrl = req.body.imageUrl;  
+
+  try {
+      // Check if an image file is included in the request
+      if (req.file) {
+          const fileBuffer = fs.readFileSync(req.file.path);
+          const path = `/uploads/${req.file.filename}`;
+    
+          // Upload the file to Dropbox
+          const fileData = await dropbox.filesUpload({
+              path: path,
+              contents: fileBuffer,
+          });
+      
+          // Create a shared link for the file
+          const sharedLinkPath = { path: fileData.result.path_display };
+          const sharedLink = await dropbox.sharingCreateSharedLinkWithSettings(sharedLinkPath);
+      
+          // Extract the link from the shared link
+          imageUrl = sharedLink.result.url;
+          imageUrl = imageUrl.replace(/dl=0/, 'raw=1');
       }
-  
+
+      // Update the event with the new image URL
+      let event = await Event.findByIdAndUpdate(eventId, { name, date, status, email, description, imageUrl }, { new: true });
+
+      if (!event) {
+          return res.status(404).json({ msg: 'Event not found' });
+      }
+
       res.json({ msg: 'Event updated successfully', event });
-    } catch (err) {
+  } catch (err) {
       console.error(err.message);
       res.status(500).send('Server Error');
-    }
+  }
 };
+
 
 // Update Event Status
 exports.updateEventStatus = async (req, res) => {

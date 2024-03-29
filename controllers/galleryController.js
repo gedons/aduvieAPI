@@ -2,66 +2,92 @@ const GalleryImage = require('../models/GalleryImage');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { Dropbox } = require('dropbox');
 
-// Set storage engine
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/gallery');  
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-  }
+ 
+const dropbox = new Dropbox({
+  accessToken: process.env.DROPBOX_ACCESS_TOKEN,
+  fetch  
 });
 
-// Initialize upload
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 9000000 },  
-  fileFilter: function (req, file, cb) {
-    checkFileType(file, cb);
-  }
-}).single('image');
+exports.createGalleryImage = async (req, res) => {
+  const file = req.file;
 
-// Check file type
-function checkFileType(file, cb) {  
-  const filetypes = /jpeg|jpg|png|gif/;
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype);
+   if (!file) {
+     return res.status(400).send('No file uploaded');
+   }
 
-  if (mimetype && extname) {
-    return cb(null, true);
-  } else {
-    cb('Error: Images only!');
+  // request body
+    const { galleryText } = req.body;
+ 
+   try {
+      const fileBuffer = fs.readFileSync(file.path);
+      const path = `/uploads/${file.filename}`;
+ 
+      const fileData = await dropbox.filesUpload({
+        path: path,
+        contents: fileBuffer,
+      });
+   
+ 
+      // path for creating a shared link
+      const sharedLinkPath = { path: fileData.result.path_display };
+ 
+      // Create a shared link for the file
+      const sharedLink = await dropbox.sharingCreateSharedLinkWithSettings(sharedLinkPath);
+ 
+      // Extract the link from the shared link
+      let imageUrl = sharedLink.result.url;
+
+     imageUrl = imageUrl.replace(/dl=0/, 'raw=1');
+
+
+ //save to database
+ const newGalleryImage = new GalleryImage({
+  imageUrl,
+  galleryText,
+})
+ 
+  try {
+  await newGalleryImage.save();
+    res.status(201).send({ msg: 'Gallery image added successfully', galleryImage: newGalleryImage });
+  } catch (err) {
+    console.error('Error creating gallery', err);
+    return res.status(500).send('Error creating gallery');
   }
-}
+  } catch (err) {
+   console.error('Error uploading file:', err);
+   return res.status(500).send('Error uploading file', err);
+  }
+};
 
 // Create Gallery Image
-exports.createGalleryImage = async (req, res) => {
-  upload(req, res, async (err) => {
-    if (err) {
-      console.error(err.message);
-      return res.status(400).json({ msg: err.message });
-    } else {
-      try {
-        const { filename } = req.file;
-        const { galleryText } = req.body;
-        const imageUrl = `/uploads/gallery/${filename}`; 
+// exports.createGalleryImage = async (req, res) => {
+//   upload(req, res, async (err) => {
+//     if (err) {
+//       console.error(err.message);
+//       return res.status(400).json({ msg: err.message });
+//     } else {
+//       try {
+//         const { filename } = req.file;
+//         const { galleryText } = req.body;
+//         const imageUrl = `/uploads/gallery/${filename}`; 
 
-        const newGalleryImage = new GalleryImage({
-          imageUrl,
-          galleryText,
-        });
+//         const newGalleryImage = new GalleryImage({
+//           imageUrl,
+//           galleryText,
+//         });
 
-        await newGalleryImage.save();
+//         await newGalleryImage.save();
 
-        res.json({ msg: 'Gallery image added successfully', galleryImage: newGalleryImage });
-      } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
-      }
-    }
-  });
-};
+//         res.json({ msg: 'Gallery image added successfully', galleryImage: newGalleryImage });
+//       } catch (err) {
+//         console.error(err.message);
+//         res.status(500).send('Server Error');
+//       }
+//     }
+//   });
+// };
 
 // Get All Slider Images
 exports.getAllGalleryImages = async (req, res) => {

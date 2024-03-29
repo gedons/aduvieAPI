@@ -2,94 +2,119 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const BlogPost = require('../models/BlogPost');
+const { Dropbox } = require('dropbox');
 
-// Set storage engine
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-  }
+ 
+const dropbox = new Dropbox({
+  accessToken: process.env.DROPBOX_ACCESS_TOKEN,
+  fetch  
 });
 
-// Initialize upload
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 9000000 }, // 1MB file size limit
-  fileFilter: function (req, file, cb) {
-    checkFileType(file, cb);
-  }
-}).single('image');
+// Create Blog Post
 
-// Check file type
-function checkFileType(file, cb) {
-  // Allowed extensions
-  const filetypes = /jpeg|jpg|png|gif/;
-  // Check extension
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  // Check mimetype
-  const mimetype = filetypes.test(file.mimetype);
+exports.createBlogPost = async (req, res) => {
+  const file = req.file;
 
-  if (mimetype && extname) {
-    return cb(null, true);
-  } else {
-    cb('Error: Images only!');
-  }
+   if (!file) {
+     return res.status(400).send('No file uploaded');
+   }
+
+  // request body
+    const { title, content } = req.body;
+ 
+   try {
+      const fileBuffer = fs.readFileSync(file.path);
+      const path = `/uploads/${file.filename}`;
+ 
+      const fileData = await dropbox.filesUpload({
+        path: path,
+        contents: fileBuffer,
+      });
+   
+ 
+      // path for creating a shared link
+      const sharedLinkPath = { path: fileData.result.path_display };
+ 
+      // Create a shared link for the file
+      const sharedLink = await dropbox.sharingCreateSharedLinkWithSettings(sharedLinkPath);
+ 
+      // Extract the link from the shared link
+      let image = sharedLink.result.url;
+
+     image = image.replace(/dl=0/, 'raw=1');
+
+
+    //save to database
+    const blogPost = new BlogPost({
+      title,
+      content,
+      image  
+    })
+
+    try {
+      await blogPost.save();
+        res.status(201).send({ msg: 'Blog post added successfully', blogPost });
+      } catch (err) {
+        console.error('Error creating post', err);
+        return res.status(500).send('Error creating post');
+      }
+      } catch (err) {
+       console.error('Error uploading file:', err);
+       return res.status(500).send('Error uploading file');
+      }
 }
 
-// Create Blog Post
-exports.createBlogPost = async (req, res) => {
-  upload(req, res, async (err) => {
-    if (err) {
-      console.error(err.message);
-      return res.status(400).json({ msg: err.message });
-    } else {
-      // Check if file is uploaded
-      if (req.file) {
+// exports.createBlogPost = async (req, res) => {
+//   upload(req, res, async (err) => {
+//     if (err) {
+//       console.error(err.message);
+//       return res.status(400).json({ msg: err.message });
+//     } else {
+//       // Check if file is uploaded
+//       if (req.file) {
         
-        let image = req.file.path;  
-        image = image.replace(/\\/g, '/');
+//         let image = req.file.path;  
+//         image = image.replace(/\\/g, '/');
 
-        const { title, content } = req.body;
+//         const { title, content } = req.body;
 
-        try {
-          const blogPost = new BlogPost({
-            title,
-            content,
-            image  
-          });
+//         try {
+//           const blogPost = new BlogPost({
+//             title,
+//             content,
+//             image  
+//           });
 
-          await blogPost.save();
+//           await blogPost.save();
 
-          res.json({ msg: 'Blog post created successfully', blogPost });
-        } catch (err) {
-          // If error occurs, delete uploaded file
-          fs.unlinkSync(req.file.path);
-          console.error(err.message);
-          res.status(500).send('Server Error');
-        }
-      } else {
-        // No file uploaded, proceed without image
-        const { title, content } = req.body;
+//           res.json({ msg: 'Blog post created successfully', blogPost });
+//         } catch (err) {
+//           // If error occurs, delete uploaded file
+//           fs.unlinkSync(req.file.path);
+//           console.error(err.message);
+//           res.status(500).send('Server Error');
+//         }
+//       } else {
+//         // No file uploaded, proceed without image
+//         const { title, content } = req.body;
 
-        try {
-          const blogPost = new BlogPost({
-            title,
-            content
-          });
+//         try {
+//           const blogPost = new BlogPost({
+//             title,
+//             content
+//           });
 
-          await blogPost.save();
+//           await blogPost.save();
 
-          res.json({ msg: 'Blog post created successfully', blogPost });
-        } catch (err) {
-          console.error(err.message);
-          res.status(500).send('Server Error');
-        }
-      }
-    }
-  });
-};
+//           res.json({ msg: 'Blog post created successfully', blogPost });
+//         } catch (err) {
+//           console.error(err.message);
+//           res.status(500).send('Server Error');
+//         }
+//       }
+//     }
+//   });
+// };
 
 // Get All Blog Posts
 exports.getAllBlogPosts = async (req, res) => {

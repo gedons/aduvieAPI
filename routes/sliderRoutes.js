@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const sliderController = require('../controllers/sliderController');
 const authMiddleware = require('../middleware/authMiddleware');
+const upload  = require('../middleware/uploadSlider')
 
 // Create Slider Image
-router.post('/slider', authMiddleware, sliderController.createSliderImage);
+router.post('/slider', authMiddleware, upload.single('image'), sliderController.createSliderImage);
 
 // Get All Slider Images
 router.get('/slider', sliderController.getAllSliderImages);

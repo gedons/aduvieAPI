@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const eventController = require('../controllers/eventController');
 const authMiddleware = require('../middleware/authMiddleware');
+const upload  = require('../middleware/uploadEvent');
 
 // Create Event
-router.post('/create', authMiddleware, eventController.createEvent);
+router.post('/create', authMiddleware, upload.single('image'), eventController.createEvent);
 
 // Get All Events
 router.get('/all', eventController.getAllEvents);

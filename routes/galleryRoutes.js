@@ -2,10 +2,12 @@ const express = require('express');
 const router = express.Router();
 const galleryController = require('../controllers/galleryController');
 const authMiddleware = require('../middleware/authMiddleware');
+const upload  = require('../middleware/uploadGallery');
+
 
 
 // Create gallery Image
-router.post('/gallery', authMiddleware, galleryController.createGalleryImage);
+router.post('/gallery', authMiddleware, upload.single('image'), galleryController.createGalleryImage);
 
 // Get All gallery Images
 router.get('/gallery', galleryController.getAllGalleryImages);

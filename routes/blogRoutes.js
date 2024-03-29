@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const blogController = require('../controllers/blogController');
 const authMiddleware = require('../middleware/authMiddleware');
+const upload  = require('../middleware/uploadBlog')
 
 // Create Blog Post
-router.post('/create', authMiddleware, blogController.createBlogPost);
+router.post('/create', authMiddleware, upload.single('image'), blogController.createBlogPost);
 
 // Get All Blog Posts
 router.get('/all', blogController.getAllBlogPosts);
